@@ -11,7 +11,7 @@ app = Flask(__name__)
 def home():
     body = "Hello "
     if(request.args.get('Body')):
-        body += request.args.get('Body')
+        body += request.args.get('Body').lower()
     resp = twilio.twiml.Response()
     resp.sms(body)
     return str(resp)
