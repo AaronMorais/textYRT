@@ -10,7 +10,9 @@ app = Flask(__name__)
 def home():
     pageString = "Hi POSTMAN!"
     if request.method == 'POST':
-        smsSendResponse("please")
+        clientNumber = request.args.get('From');
+        clientTextContent = request.args.get('Body').lower()
+        client.sms.messages.create(to=clientNumber, from_=keys.phoneNumber, body= clientTextContent)
     else:
         pageString = "Hello World!"
     return pageString
