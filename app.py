@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     body = "Hello "
-    if(request.args.get('Body')):
+    if(request.args.get('Body').lower()):
         body += request.args.get('Body').lower()
     resp = twilio.twiml.Response()
     resp.sms(body)
