@@ -1,24 +1,24 @@
 import os
 import keys
-from flask import Flask, request, redirectm session
+from flask import Flask, request, redirect, session
 from twilio.rest import TwilioRestClient
+import twilio.twiml
 
 client = TwilioRestClient(keys.sid, keys.token)
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    pageString = "Hi POSTMAN!"
-    if request.method == 'POST':
-        clientNumber = request.args.get('From');
-        clientTextContent = request.args.get('Body').lower()
-        client.sms.messages.create(to=clientNumber, from_=keys.phoneNumber, body= clientTextContent)
-    else:
-        pageString = "Hello World!"
-    return pageString
+    body = "Hello "
+    if(request.args.get('Body')):
+        body += request.args.get('Body')
+    resp = twilio.twiml.Response()
+    resp.sms(body)
+    return str(resp)
 
 @app.route('/sendMessage/<messageBody>')
 def sendMessage(messageBody):
+    smsSendResponse(messageBody)
     return "Message " + messageBody + " has been sent."
 
 def smsSendResponse(incomingMessage):
