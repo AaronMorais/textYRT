@@ -9,9 +9,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        message = request.args.get('Body')
-        sender = request.args.get('From')
-        smsSendResponse(message,sender)
+        smsSendResponse(request.Body, request.From)
     return "Main Page."
 
 def smsSendResponse(incomingMessage, recipient):
