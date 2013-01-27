@@ -12,9 +12,7 @@ def home():
         message = request.args.get('Body')
         sender = request.args.get('From')
         smsSendResponse(message,sender)
-        return "Avoid twiml"
-    else:
-        return "Main Page."
+    return "Main Page."
 
 def smsSendResponse(incomingMessage, recipient):
     responseBody = "Hi! You said: " + incomingMessage
