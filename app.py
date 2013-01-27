@@ -2,7 +2,6 @@ import os
 import keys
 from flask import Flask, request
 from twilio.rest import TwilioRestClient
-from twilio import twiml
 
 client = TwilioRestClient(keys.sid, keys.token)
 app = Flask(__name__)
@@ -10,9 +9,10 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        response = twiml.Response()
-        response.sms("hi")
-        return response
+        message = request.args.get('Body')
+        sender = request.args.get('From')
+        smsSendResponse(message,sender)
+        return "Avoid twiml"
     else:
         return "Main Page."
 
