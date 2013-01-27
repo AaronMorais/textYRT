@@ -8,21 +8,13 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    pageString = "Hi POSTMAN!"
     if request.method == 'POST':
-        smsSendResponse("Hello World")
-    else:
-        pageString = "Hello World!"
-    return pageString
+        smsSendResponse(request.Body, request.From)
+    return "Main Page."
 
-@app.route('/sendMessage/<messageBody>')
-def sendMessage(messageBody):
-#    smsSendResponse(messageBody)
-    return "Message " + messageBody + " has been sent."
-
-def smsSendResponse(incomingMessage):
-    responseBody = incomingMessage
-    call = client.sms.messages.create(to="4168460453", from_=keys.phoneNumber, body=responseBody)
+def smsSendResponse(incomingMessage, recipient):
+    responseBody = "Hi! You said: " + incomingMessage
+    call = client.sms.messages.create(to=recipient, from_=keys.phoneNumber, body=responseBody)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
