@@ -1,6 +1,6 @@
 import os
 import keys
-from flask import Flask, request, redirect, session
+from flask import Flask, request
 from twilio.rest import TwilioRestClient
 import twilio.twiml
 import data
