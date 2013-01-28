@@ -11,7 +11,7 @@ app = Flask(__name__)
 def home():
     requestBody = str(request.args.get('Body'))
     body = requestBody + " Results: Coming Soon!"
-    if len(requestBody) != 4 or requestBody.isdigit != True:
+    if len(requestBody) != 4 or requestBody.isdigit() != True:
         body = "Stop " + requestBody + " does not exist."
     resp = twilio.twiml.Response()
     resp.sms(body)
