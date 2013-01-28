@@ -3,6 +3,7 @@ import keys
 from flask import Flask, request, redirect, session
 from twilio.rest import TwilioRestClient
 import twilio.twiml
+import data
 
 client = TwilioRestClient(keys.sid, keys.token)
 app = Flask(__name__)
@@ -10,9 +11,10 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     requestBody = str(request.args.get('Body'))
-    body = requestBody + " Results: Coming Soon!"
+    body = requestBody
     if len(requestBody) != 4 or requestBody.isdigit() != True:
         body = "Stop " + requestBody + " does not exist."
+    body += "\n" + data.getNextBuses(requestBody)
     resp = twilio.twiml.Response()
     resp.sms(body)
     return str(resp)
