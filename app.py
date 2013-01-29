@@ -14,7 +14,8 @@ def home():
     body = requestBody
     if len(requestBody) != 4 or requestBody.isdigit() != True:
         body = "Stop " + requestBody + " does not exist."
-    body += "\n" + data.getNextBuses(requestBody, 5)
+    body += "\n" + data.getNextBuses(requestBody)
+    print body
     resp = twilio.twiml.Response()
     resp.sms(body)
     return str(resp)

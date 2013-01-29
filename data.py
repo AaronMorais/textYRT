@@ -10,12 +10,19 @@ from datetime import datetime
 conn = sqlite3.connect('yrtGTFS.db')
 c = conn.cursor()
 
-def getNextBuses(stopNumber, resultMax):
+def getNextBuses(stopNumber):
+    resultMax = 5
     stopID = getStopID(stopNumber)
-    result = getStopResults(stopID)
-    if(len(result) >= resultMax):
-        result = result[0:resultMax]
-    return '\n'.join(result)
+    if stopID is None:
+        return ""
+
+    results = getStopResults(stopID)
+    if results is None:
+        return ""
+
+    if(len(results) >= resultMax):
+        results = results[0:resultMax]
+    return '\n'.join(results)
 
 def getStopResults(stopID):
     currentTime = datetime.time(datetime.now())
@@ -46,4 +53,4 @@ def getStopID(stopNumber):
     return c.fetchone()[0]
 
 if __name__ == '__main__':
-    print getNextBuses("3280", 5)
+    print getNextBuses("3280")
