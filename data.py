@@ -1,3 +1,8 @@
+#TODO: consider time zone for server location
+#TODO: consider data from the correct day/week/holdidays/weekend/other
+#TODO: add realtime data
+#TODO: grab data past midnight
+
 import sqlite3
 import time
 from datetime import datetime
@@ -5,31 +10,40 @@ from datetime import datetime
 conn = sqlite3.connect('yrtGTFS.db')
 c = conn.cursor()
 
-def getNextBuses(stopNumber):
-    stopID = ""
-    for row in c.execute('SELECT * FROM gtfs_stops WHERE stop_code LIKE ' + stopNumber):
-        stopID = str(row[0]) 
-    if stopID == "":
-        print "throw error"
+def getNextBuses(stopNumber, resultMax):
+    stopID = getStopID(stopNumber)
+    result = getStopResults(stopID)
+    if(len(result) >= resultMax):
+        result = result[0:resultMax]
+    return '\n'.join(result)
 
-#TODO: consider time zone for server location
-#TODO: consider data from the correct date/handle calendar dates
+def getStopResults(stopID):
     currentTime = datetime.time(datetime.now())
     currentTimeInSeconds = currentTime.hour*3600 + currentTime.minute*60 + currentTime.second
-
     results = []
+    t = (stopID,)
+    c.execute('SELECT * FROM gtfs_stop_times WHERE stop_id =? ORDER BY arrival_time', t)
+    stopTimes = c.fetchall()
+    for stopTime in stopTimes:
+        timeInSecs = stopTime[10]
+        if(currentTimeInSeconds < timeInSecs):
+            resultString = stopTime[1] + " - " + getRouteInfo(stopTime[0])
+            results.append(resultString)
+    return results
 
-    for stopTime in c.execute('SELECT * FROM gtfs_stop_times WHERE stop_id = ' + stopID + ' ORDER BY arrival_time'):
-       timeStruct = time.strptime(stopTime[1],"%H:%M:%S")
-       timeInSeconds = timeStruct.tm_hour * 3600 + timeStruct.tm_min * 60 + timeStruct.tm_sec
-       if(timeInSeconds > currentTimeInSeconds):
-           for trip in c.execute('SELECT * FROM gtfs_trips WHERE trip_id =' + stopTime[0]):
-              for route in c.execute('SELECT * FROM gtfs_routes WHERE route_id= ' + trip[0]):
-                  results.append(stopTime[1] + " - " + route[2] + " " + route[3])
-    resultString = ""
-    for result in results:
-        resultString += " " + result + " \n"
-    return resultString
+def getRouteInfo(tripID):
+    t = (tripID,)
+    c.execute('SELECT * FROM gtfs_trips WHERE trip_id =?', t)
+    t = (c.fetchone()[0],)
+    c.execute('SELECT * FROM gtfs_routes WHERE route_id =?', t)
+    info = c.fetchone()
+    return info[2] + " " + info[3]
+
+
+def getStopID(stopNumber):
+    t = (stopNumber,)
+    c.execute('SELECT * FROM gtfs_stops WHERE stop_code =?', t)
+    return c.fetchone()[0]
 
 if __name__ == '__main__':
-    print getNextBuses("3280")
+    print getNextBuses("3280", 5)
