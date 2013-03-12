@@ -4,14 +4,12 @@
 #TODO: grab data past midnight
 
 import sqlite3
-import time
+import time, os
 from datetime import datetime
 
 conn = sqlite3.connect('yrtGTFS.db')
 c = conn.cursor()
-
-def getNextBuses(stopNumber):
-    resultMax = 5
+def getNextBuses(stopNumber, resultMax):
     stopID = getStopID(stopNumber)
     if stopID is None:
         return ""
@@ -25,8 +23,12 @@ def getNextBuses(stopNumber):
     return '\n'.join(results)
 
 def getStopResults(stopID):
-    currentTime = datetime.time(datetime.now())
-    currentTimeInSeconds = currentTime.hour*3600 + currentTime.minute*60 + currentTime.second
+    c.execute('SELECT * FROM gtfs_agency')
+    timeZone = c.fetchone()[3]
+    os.environ['TZ'] = timeZone
+    time.tzset()
+    currentTime = time.localtime()
+    currentTimeInSeconds = currentTime.tm_hour*3600 + currentTime.tm_min*60 + currentTime.tm_sec
     results = []
     t = (stopID,)
     c.execute('SELECT * FROM gtfs_stop_times WHERE stop_id =? ORDER BY arrival_time', t)
@@ -53,4 +55,4 @@ def getStopID(stopNumber):
     return c.fetchone()[0]
 
 if __name__ == '__main__':
-    print getNextBuses("3280")
+  print getNextBuses("3280", 5)
