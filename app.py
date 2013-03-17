@@ -3,8 +3,10 @@ import keys
 from flask import Flask, request
 from twilio.rest import TwilioRestClient
 import twilio.twiml
-from data import *
+from tf import *
 
+schedule = createScheduleInstance()
+print schedule
 client = TwilioRestClient(keys.sid, keys.token)
 app = Flask(__name__)
 
@@ -14,7 +16,7 @@ def home():
     body = requestBody
     if len(requestBody) != 4 or requestBody.isdigit() != True:
         body = "Stop " + requestBody + " does not exist."
-    body += "\n" + getNextBuses(requestBody, 5)
+    body += "\n" + getNextBuses(schedule, requestBody, 5)
     resp = twilio.twiml.Response()
     resp.sms(body)
     return str(resp)

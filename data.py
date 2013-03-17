@@ -1,4 +1,3 @@
-#TODO: consider time zone for server location
 #TODO: consider data from the correct day/week/holdidays/weekend/other
 #TODO: add realtime data
 #TODO: grab data past midnight
