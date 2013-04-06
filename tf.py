@@ -42,23 +42,20 @@ def getStop(schedule, stopNumber):
 def getStopTimes(schedule, stop):
     #set timezone and get localtime in seconds
     setTimeZoneForAgency(schedule)
-    localTimeInSeconds = getLocalTimeInSeconds()
+    localTimeStruct = time.localtime()
+    localTimeInSeconds = localTimeStruct.tm_hour*3600 + localTimeStruct.tm_min*60 + localTimeStruct.tm_sec
 
     fm = createRealtimeInstance()
     results = []
     for stopTimeTuple in stop.GetStopTimeTrips():
         timeInSecs = stopTimeTuple[0]
         activeDates = stopTimeTuple[1][0].service_period.ActiveDates()
-        dateToday = time.strftime('%Y%m%d', currentTime)
+        dateToday = time.strftime('%Y%m%d', localTimeStruct)
         if any(dateToday in d for d in activeDates):
-            if(currentTimeInSeconds < timeInSecs):
+            if(localTimeInSeconds < timeInSecs):
                 route_id = stopTimeTuple[1][0]['route_id']
                 shortName = schedule.routes[str(route_id)]['route_short_name']
                 longName = schedule.routes[str(route_id)]['route_long_name']
-#               hour = int(timeInSecs/3600) 
-#               min = int((timeInSecs - (hour*3600))/60)
-#               sec = int((timeInSecs - (hour*3600) - (min*60)))
-#               resultString = str(hour) + " " + str(min) + " " + str(sec) + " - " + routeName
                 resultString = time.strftime('%I:%M%p', time.gmtime(timeInSecs)) + " - " + shortName + " " + longName
                 results.append(resultString)
     return results
@@ -68,11 +65,6 @@ def setTimeZoneForAgency(schedule):
     timeZone = schedule._agencies['YRT']['agency_timezone']
     os.environ['TZ'] = timeZone
     time.tzset()
-
-def getLocalTimeInSeconds():
-    localTimeStruct = time.localtime()
-    localTimeInSeconds = localTimeStruct.tm_hour*3600 + localTimeStruct.tm_min*60 + localTimeStruct.tm_sec
-    return localTimeInSeconds
 
 def createScheduleInstance():
     loader = transitfeed.Loader("./google_transit.zip")
@@ -86,4 +78,4 @@ def createRealtimeInstance():
 
 if __name__ == '__main__':
     schedule = createScheduleInstance()
-    print getNextBuses(schedule, 3280, 5)
+    print getNextBusTimes(schedule, 3280, 5)

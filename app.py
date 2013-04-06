@@ -24,7 +24,6 @@ def sms():
 
     #get next bus times from tf.py
     nextBusTimes = getNextBusTimes(schedule, requestBody, 5)
-    print nextBusTimes
     if nextBusTimes is None:
         return "Sorry! The stop you requested does not exist or an error occured." 
 
