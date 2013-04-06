@@ -1,37 +1,50 @@
+#TODO: finish realtime data
+#TODO: grab data past midnight
+#TODO: schedule realtime updates every minute
+#TODO: schedule gtfs updates every once in a while
+#TODO: move to a cheaper text service
+
 import sys
 import transitfeed
-#TODO: consider data from the correct day/week/holdidays/weekend/other
-#TODO: add realtime data
-#TODO: grab data past midnight
-
+import gtfs_realtime_pb2
+from urllib2 import urlopen
 import time, os
 from datetime import date
 
-def getNextBuses(schedule, stopNumber, resultMax):
+def getNextBusTimes(schedule, stopNumber, resultMax):
+    #match stop number to actual stop in database
     stop = getStop(schedule, stopNumber)
     if stop is None:
-        return ""
+        return None
 
-    results = getStopResults(schedule, stop)
+    #get bus times for stop
+    results = getStopTimes(schedule, stop)
     if results is None:
-        return ""
+        return None
 
-    if(len(results) >= resultMax):
+    if len(results) == 0:
+        return "Unfortunately, there are no buses coming to that stop in the next 24 hours."
+
+    #shrink the response array to request size
+    if(len(results) >= resultMax): 
         results = results[0:resultMax]
-    return '\n'.join(results)
+
+    #return string of results seperated by line breaks
+    return '\n'.join(results) 
 
 def getStop(schedule, stopNumber):
+    #iterate through stops in database and find stop that corresponds to stop number
     for stop in schedule.GetStopList():
         if(str(stop['stop_code']) == str(stopNumber)):
             return stop
     return None
 
-def getStopResults(schedule, stop):
-    timeZone = schedule._agencies['YRT']['agency_timezone']
-    os.environ['TZ'] = timeZone
-    time.tzset()
-    currentTime = time.localtime()
-    currentTimeInSeconds = currentTime.tm_hour*3600 + currentTime.tm_min*60 + currentTime.tm_sec
+def getStopTimes(schedule, stop):
+    #set timezone and get localtime in seconds
+    setTimeZoneForAgency(schedule)
+    localTimeInSeconds = getLocalTimeInSeconds()
+
+    fm = createRealtimeInstance()
     results = []
     for stopTimeTuple in stop.GetStopTimeTrips():
         timeInSecs = stopTimeTuple[0]
@@ -50,10 +63,26 @@ def getStopResults(schedule, stop):
                 results.append(resultString)
     return results
 
+def setTimeZoneForAgency(schedule):
+    #get agency timezone and set the TZ environment variable
+    timeZone = schedule._agencies['YRT']['agency_timezone']
+    os.environ['TZ'] = timeZone
+    time.tzset()
+
+def getLocalTimeInSeconds():
+    localTimeStruct = time.localtime()
+    localTimeInSeconds = localTimeStruct.tm_hour*3600 + localTimeStruct.tm_min*60 + localTimeStruct.tm_sec
+    return localTimeInSeconds
+
 def createScheduleInstance():
-    loader = transitfeed.Loader(feed_path="./google_transit.zip")
+    loader = transitfeed.Loader("./google_transit.zip")
     schedule = loader.Load()
     return schedule
+
+def createRealtimeInstance():
+    fm = gtfs_realtime_pb2.FeedMessage()
+    fm.ParseFromString(urlopen('http://rtu.york.ca/gtfsrealtime/TripUpdates').read())
+    return fm
 
 if __name__ == '__main__':
     schedule = createScheduleInstance()
