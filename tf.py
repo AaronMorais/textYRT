@@ -1,5 +1,4 @@
 #TODO: finish realtime data
-#TODO: grab data past midnight
 #TODO: schedule realtime updates every minute
 #TODO: schedule gtfs updates every once in a while
 #TODO: move to a cheaper text service
@@ -51,22 +50,23 @@ def getStopTimes(schedule, stop):
     tomorrowTimeStruct = time.localtime(time.time() + 24*3600)
     dateTomorrow = time.strftime('%Y%m%d', tomorrowTimeStruct)
 
-
-    results = []
-    resultsTomorrow = []
-    for trip in sorted(stop.GetStopTimeTrips()):
+    results = {}
+    resultsTomorrow = {}
+    for trip in stop.GetStopTimeTrips():
         arrivalTimeInSecs = trip[0]
         activeDates = trip[1][0].service_period.ActiveDates()
 
         if any(dateToday in d for d in activeDates):
             if(localTimeInSeconds < arrivalTimeInSecs):
                 resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
-                results.append(resultString)
+                results[resultString] = arrivalTimeInSecs
 
         if any(dateTomorrow in d for d in activeDates):
             resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
-            resultsTomorrow.append(resultString)
-    return results + resultsTomorrow
+            resultsTomorrow[resultString] = arrivalTimeInSecs
+
+    combinedSortedResults = sorted(results, key=results.get) + sorted(resultsTomorrow, key=resultsTomorrow.get)
+    return combinedSortedResults
 
 def createStopTimeString(scheulde, route, arrivalTimeInSecs):
     route_id = route['route_id']
