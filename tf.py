@@ -42,23 +42,47 @@ def getStop(schedule, stopNumber):
 def getStopTimes(schedule, stop):
     #set timezone and get localtime in seconds
     setTimeZoneForAgency(schedule)
-    localTimeStruct = time.localtime()
-    localTimeInSeconds = localTimeStruct.tm_hour*3600 + localTimeStruct.tm_min*60 + localTimeStruct.tm_sec
 
-    fm = createRealtimeInstance()
+    #compute localtime in seconds and create date strings for today and tomorrow
+    localTimeStruct = time.localtime()
+    localTimeInSeconds = getTimeInSecondsFromTimeStruct(localTimeStruct)
+    dateToday = time.strftime('%Y%m%d', localTimeStruct)
+
+    tomorrowTimeStruct = time.localtime(time.time() + 24*3600)
+    dateTomorrow = time.strftime('%Y%m%d', tomorrowTimeStruct)
+
+
     results = []
-    for stopTimeTuple in stop.GetStopTimeTrips():
-        timeInSecs = stopTimeTuple[0]
-        activeDates = stopTimeTuple[1][0].service_period.ActiveDates()
-        dateToday = time.strftime('%Y%m%d', localTimeStruct)
+    resultsTomorrow = []
+    for trip in sorted(stop.GetStopTimeTrips()):
+        arrivalTimeInSecs = trip[0]
+        activeDates = trip[1][0].service_period.ActiveDates()
+
         if any(dateToday in d for d in activeDates):
             if(localTimeInSeconds < timeInSecs):
                 route_id = stopTimeTuple[1][0]['route_id']
                 shortName = schedule.routes[str(route_id)]['route_short_name']
                 longName = schedule.routes[str(route_id)]['route_long_name']
                 resultString = time.strftime('%I:%M%p', time.gmtime(timeInSecs)) + " - " + shortName + " " + longName
+            if(localTimeInSeconds < arrivalTimeInSecs):
+                resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
                 results.append(resultString)
-    return results
+
+        if any(dateTomorrow in d for d in activeDates):
+            resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
+            resultsTomorrow.append(resultString)
+    return results + resultsTomorrow
+
+def createStopTimeString(scheulde, route, arrivalTimeInSecs):
+    route_id = route['route_id']
+    shortName = schedule.routes[str(route_id)]['route_short_name']
+    longName = schedule.routes[str(route_id)]['route_long_name']
+    resultString = time.strftime('%I:%M%p', time.gmtime(arrivalTimeInSecs)) + " - " + shortName + " " + longName
+    return resultString
+
+
+def getTimeInSecondsFromTimeStruct(timeStruct):
+    return timeStruct.tm_hour*3600 + timeStruct.tm_min*60 + timeStruct.tm_sec
 
 def setTimeZoneForAgency(schedule):
     #get agency timezone and set the TZ environment variable
