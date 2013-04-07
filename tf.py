@@ -59,11 +59,6 @@ def getStopTimes(schedule, stop):
         activeDates = trip[1][0].service_period.ActiveDates()
 
         if any(dateToday in d for d in activeDates):
-            if(localTimeInSeconds < timeInSecs):
-                route_id = stopTimeTuple[1][0]['route_id']
-                shortName = schedule.routes[str(route_id)]['route_short_name']
-                longName = schedule.routes[str(route_id)]['route_long_name']
-                resultString = time.strftime('%I:%M%p', time.gmtime(timeInSecs)) + " - " + shortName + " " + longName
             if(localTimeInSeconds < arrivalTimeInSecs):
                 resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
                 results.append(resultString)
