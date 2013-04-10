@@ -58,17 +58,19 @@ def getStopTimes(schedule, stop):
 
         if any(dateToday in d for d in activeDates):
             if(localTimeInSeconds < arrivalTimeInSecs):
-                resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
+                route = trip[1][0]
+                resultString = createStopTimeString(schedule, route, arrivalTimeInSecs)
                 results[resultString] = arrivalTimeInSecs
 
         if any(dateTomorrow in d for d in activeDates):
-            resultString = createStopTimeString(schedule, trip[1][0], arrivalTimeInSecs)
+            route = trip[1][0]
+            resultString = createStopTimeString(schedule, route, arrivalTimeInSecs)
             resultsTomorrow[resultString] = arrivalTimeInSecs
 
     combinedSortedResults = sorted(results, key=results.get) + sorted(resultsTomorrow, key=resultsTomorrow.get)
     return combinedSortedResults
 
-def createStopTimeString(scheulde, route, arrivalTimeInSecs):
+def createStopTimeString(schedule, route, arrivalTimeInSecs):
     route_id = route['route_id']
     shortName = schedule.routes[str(route_id)]['route_short_name']
     longName = schedule.routes[str(route_id)]['route_long_name']
