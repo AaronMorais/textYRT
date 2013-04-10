@@ -52,6 +52,9 @@ def getStopTimes(schedule, stop):
 
     results = {}
     resultsTomorrow = {}
+
+    realtime = createRealtimeInstance()
+
     for trip in stop.GetStopTimeTrips():
         arrivalTimeInSecs = trip[0]
         activeDates = trip[1][0].service_period.ActiveDates()
@@ -59,6 +62,7 @@ def getStopTimes(schedule, stop):
         if any(dateToday in d for d in activeDates):
             if(localTimeInSeconds < arrivalTimeInSecs):
                 route = trip[1][0]
+                arrivalTimeInSecs = updateArrivalWithRealtime(realtime, route, arrivalTimeInSecs)
                 resultString = createStopTimeString(schedule, route, arrivalTimeInSecs)
                 results[resultString] = arrivalTimeInSecs
 
@@ -69,6 +73,16 @@ def getStopTimes(schedule, stop):
 
     combinedSortedResults = sorted(results, key=results.get) + sorted(resultsTomorrow, key=resultsTomorrow.get)
     return combinedSortedResults
+
+def updateArrivalWithRealtime(realtime, route, arrivalTimeInSecs):
+    # if(any(route.trip_id in entity.trip_update.trip.trip_id for entity in realtime.entity)):        
+    #     entity = next(entity for entity in realtime.entity if entity.trip_update.trip.trip_id == route.trip_id)
+    #     if entity:
+    #         stopTimeUpdate = next(stop for stop in entity.trip_update.stop_time_update if stop.stop_sequence != index)
+    #         if stopTimeUpdate:
+    #             for stopTimeUpdate in entity.trip_update.stop_time_update:
+    #                 arrivalTimeInSecs = time.localtime(stopTimeUpdate.departure.time)
+    return arrivalTimeInSecs
 
 def createStopTimeString(schedule, route, arrivalTimeInSecs):
     route_id = route['route_id']
