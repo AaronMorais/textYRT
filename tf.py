@@ -10,6 +10,9 @@ from urllib2 import urlopen
 import time, os
 from datetime import date
 
+realtime = None
+realtimeAge = None
+
 def getNextBusTimes(schedule, stopNumber, resultMax):
     #match stop number to actual stop in database
     stop = getStop(schedule, stopNumber)
@@ -53,7 +56,7 @@ def getStopTimes(schedule, stop):
     results = {}
     resultsTomorrow = {}
 
-    realtime = createRealtimeInstance()
+    createRealtimeInstance()
 
     for trip in stop.GetStopTimeTrips():
         arrivalTimeInSecs = trip[0]
@@ -107,10 +110,16 @@ def createScheduleInstance():
     return schedule
 
 def createRealtimeInstance():
-    fm = gtfs_realtime_pb2.FeedMessage()
-    fm.ParseFromString(urlopen('http://rtu.york.ca/gtfsrealtime/TripUpdates').read())
-    return fm
+    global realtime
+    global realtimeAge
+    if realtimeAge and ((time.time() - realtimeAge) < 120):
+        print "No update"
+        return
+    print "update"
+    realtimeAge = time.time()
+    realtime = gtfs_realtime_pb2.FeedMessage()
+    realtime.ParseFromString(urlopen('http://rtu.york.ca/gtfsrealtime/TripUpdates').read())
 
 if __name__ == '__main__':
     schedule = createScheduleInstance()
-    print getNextBusTimes(schedule, 3280, 5)
+    print getNextBusTimes(schedule, 3280, 3)
