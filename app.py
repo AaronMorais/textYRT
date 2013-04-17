@@ -5,7 +5,7 @@ from twilio.rest import TwilioRestClient
 import twilio.twiml
 from tf import *
 
-schedule = createScheduleInstance()
+schedule = None
 client = TwilioRestClient(keys.sid, keys.token)
 app = Flask(__name__)
 
@@ -15,6 +15,10 @@ def home():
 
 @app.route('/sms', methods=['GET', 'POST'])
 def sms():
+    global schedule
+    if schedule is None:
+        schedule = createScheduleInstance()
+        
     #parse body parameter from request
     requestBody = str(request.args.get('Body')) 
 
