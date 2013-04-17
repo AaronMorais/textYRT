@@ -19,7 +19,7 @@ def getNextBusTimes(schedule, stopNumber, resultMax):
     #get bus times for stop
     results = getStopTimes(schedule, stop)
     if results is None:
-        return None
+        return "Unfortunately, there are no buses coming to that stop in the next 24 hours."
 
     if len(results) == 0:
         return "Unfortunately, there are no buses coming to that stop in the next 24 hours."

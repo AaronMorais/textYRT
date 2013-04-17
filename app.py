@@ -24,16 +24,17 @@ def sms():
 
     #immediately fail if request is not a 4 digit number
     if len(requestBody) != 4 or requestBody.isdigit() != True:
-        return "Stop invalid. Please request stop times for a valid stop."
+        requestBody =  "Stop invalid. Please request stop times for a valid stop."
 
     #get next bus times from tf.py
     nextBusTimes = getNextBusTimes(schedule, requestBody, 3)
     if nextBusTimes is None:
-        return "Sorry! The stop you requested does not exist or an error occured." 
+        requestBody = "Sorry! The stop you requested does not exist or an error occured." 
 
     #send response to twilio
     responseString = requestBody 
-    responseString += "\n" + nextBusTimes
+    if nextBusTimes:
+        responseString += "\n" + nextBusTimes
     twilioResponse = twilio.twiml.Response()
     twilioResponse.sms(responseString)
     return str(twilioResponse)
